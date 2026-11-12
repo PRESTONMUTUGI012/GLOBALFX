@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ehaldart Global FX & Binary | Multimarket Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: { colors: { darker: '#030712', cardbg: '#0d1b2a', accent: '#10b981', gold: '#FFD700', fxgreen: '#00ff88' } }
+            }
+        }
+    </script>
+    <style>
+        .fx-glow { text-shadow: 0 0 25px rgba(0, 255, 136, 0.5), 0 0 50px rgba(0, 255, 136, 0.2); }
+        .wallpaper-bg { background-color: #030712; background-image: radial-gradient(circle at 50% 20%, rgba(0, 255, 136, 0.08) 0%, transparent 50%), radial-gradient(circle at 10% 80%, rgba(59, 130, 246, 0.06) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(255, 215, 0, 0.04) 0%, transparent 40%); }
+        .trading-grid-bg { background-image: linear-gradient(rgba(0, 255, 136, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 136, 0.04) 1px, transparent 1px); background-size: 24px 24px; }
+    </style>
+</head>
+<body class="wallpaper-bg trading-grid-bg text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
+
+    <!-- PROFIT NOTIFICATION BANNER -->
+    <div id="profit-toast-banner" class="fixed top-20 right-6 z-50 transform translate-x-full opacity-0 transition-all duration-500 pointer-events-none">
+        <div class="bg-slate-950/95 border-2 border-emerald-500 rounded-2xl p-4 shadow-[0_0_30px_rgba(0,255,136,0.35)] backdrop-blur-xl flex items-center space-x-3.5">
+            <div class="bg-emerald-500/20 p-2.5 rounded-xl border border-emerald-500/40 text-fxgreen text-lg">📉 ✅</div>
+            <div>
+                <div class="text-[10px] font-mono font-bold tracking-widest text-fxgreen uppercase">COURTESY OF ELHADARTGLOBALFX 📉 ✅</div>
+                <div id="profit-toast-details" class="text-xs font-bold text-white mt-0.5">Execution Profit Secured</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BRANDED SPLASH SCREEN -->
+    <div id="splash-screen" class="fixed inset-0 z-50 bg-[#030712] flex flex-col items-center justify-center p-6 transition-opacity duration-1000">
+        <div class="max-w-xl w-full bg-slate-950/95 border border-emerald-500/40 rounded-3xl p-8 shadow-[0_0_50px_rgba(0,255,136,0.15)] text-center space-y-6 backdrop-blur-xl relative overflow-hidden">
+            <div class="space-y-3 relative z-10">
+                <div class="text-4xl md:text-5xl font-black tracking-tight text-white">EHALDART</div>
+                <div class="flex items-center justify-center space-x-3">
+                    <span class="text-2xl md:text-3xl font-extrabold tracking-widest text-slate-300">GLOBAL</span>
+                    <span class="text-4xl md:text-5xl font-black text-fxgreen fx-glow italic tracking-tighter border-2 border-fxgreen px-3 py-1 rounded-xl bg-emerald-950/40">FX</span>
+                </div>
+                <div class="text-xs md:text-sm font-bold tracking-wider text-slate-400 uppercase pt-1">FX & BINARY</div>
+            </div>
+            <div class="border-t border-slate-800 pt-4 relative z-10">
+                <div class="text-xs font-mono tracking-widest text-emerald-400 uppercase">MULTIMARKET TERMINAL | BY JAMAL EHALDART</div>
+            </div>
+            <div class="space-y-2 relative z-10 pt-2">
+                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-800">
+                    <div id="core-progress-bar" class="bg-gradient-to-r from-emerald-600 to-fxgreen h-full w-0 transition-all duration-300 shadow-[0_0_15px_rgba(0,255,136,0.5)]"></div>
+                </div>
+                <div class="flex justify-between items-center text-xs font-mono text-slate-400">
+                    <span id="loading-status-text" class="text-fxgreen">Connecting Deriv Live Tick Streams & Indicators...</span>
+                    <span id="loading-timer-display" class="text-fxgreen font-bold">03:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40">
+        <div class="flex items-center space-x-3">
+            <div class="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></div>
+            <span class="font-black tracking-widest text-emerald-400 text-sm">EHALDART GLOBAL FX & BINARY</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <button id="btn-audio-toggle" onclick="toggleTerminalAudio()" class="bg-slate-900 hover:bg-slate-800 text-fxgreen text-xs font-mono font-bold px-3 py-1.5 rounded-xl border border-fxgreen/30 transition flex items-center space-x-1.5">
+                <span id="audio-status-icon">🔊</span>
+                <span id="audio-status-text">SFX ON</span>
+            </button>
+            <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+                <button id="btn-mode-demo" onclick="switchAccountMode('demo')" class="px-3 py-1 rounded-lg font-bold bg-emerald-600 text-white transition">DEMO</button>
+                <button id="btn-mode-real" onclick="switchAccountMode('real')" class="px-3 py-1 rounded-lg font-semibold text-slate-400 hover:text-white transition">REAL</button>
+            </div>
+            <div class="text-right">
+                <div class="text-[10px] text-slate-400 uppercase font-mono">Account Balance</div>
+                <div id="account-balance-display" class="text-sm font-bold font-mono text-emerald-400">$1,000.00</div>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="loginWithDeriv()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition">OAuth Login</button>
+                <button onclick="signupWithDeriv()" class="bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-bold px-3.5 py-2 rounded-xl border border-slate-800 transition">Register</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- LEFT: MARKET ASSET HUB & CURRENCY CONVERTER -->
+        <div class="space-y-6">
+            <div class="bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Asset & Volatility 1s Hub</h2>
+                    <span id="tick-buffer-count" class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">0 / 5000 Ticks</span>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-mono">Market Category</label>
+                        <select id="market-category" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 mt-1">
+                            <option value="accumulators">Accumulator Indices (ACCU 10-100)</option>
+                            <option value="volatility_1s">Volatility 1s Indices (1HZ10V - 100V)</option>
+                            <option value="synthetic">Standard Synthetics & Jump</option>
+                            <option value="forex">Forex Majors (EUR/USD, GBP/USD)</option>
+                            <option value="commodities">Commodities (Gold XAU/USD)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-mono">Tradable Instrument</label>
+                        <select id="asset-selector" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 mt-1"></select>
+                    </div>
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <span class="text-xs text-slate-400">Live Tick Quote:</span>
+                        <span id="live-quote-display" class="text-base font-mono font-bold text-fxgreen">0.0000</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-Currency Conversion Room -->
+            <div class="bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-2xl space-y-4">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Multi-Currency Conversion Room</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-mono">Amount (USD)</label>
+                        <input id="convert-amount" type="number" value="100" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white mt-1 focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 font-mono">Target Currency</label>
+                        <select id="target-currency" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white mt-1 focus:outline-none focus:border-emerald-500">
+                            <option value="KES">KES (Kenyan Shilling)</option>
+                            <option value="UGX">UGX (Ugandan Shilling)</option>
+                            <option value="TZS">TZS (Tanzanian Shilling)</option>
+                            <option value="ETB">ETB (Ethiopian Birr)</option>
+                            <option value="EUR">EUR (Euro)</option>
+                            <option value="GBP">GBP (British Pound)</option>
+                            <option value="JPY">JPY (Japanese Yen)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                    <span class="text-slate-400">Converted Value:</span>
+                    <span id="converted-output" class="font-mono font-bold text-fxgreen">12,900.00 KES</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: ALL 4 INDICATORS & ALL-DIGIT MATRIX & EXECUTION SIGNALS -->
+        <div class="space-y-6">
+            <!-- All 4 Active Indicators Readout -->
+            <div class="bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">4 Core Live Technical Indicators</h2>
+                    <span id="signal-badge" class="text-[10px] bg-emerald-500/20 text-fxgreen px-2.5 py-0.5 rounded border border-emerald-500/40 font-mono font-bold animate-pulse">ACTIVE</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><div class="text-[10px] text-slate-500">1. RSI (14)</div><div id="ind-rsi" class="text-slate-200 font-bold mt-0.5">--</div></div>
+                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><div class="text-[10px] text-slate-500">2. MACD Histogram</div><div id="ind-macd" class="text-slate-200 font-bold mt-0.5">--</div></div>
+                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><div class="text-[10px] text-slate-500">3. Stochastic %K</div><div id="ind-stoch" class="text-slate-200 font-bold mt-0.5">--</div></div>
+                    <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800"><div class="text-[10px] text-slate-500">4. Bollinger / BOS</div><div id="ind-bb" class="text-slate-200 font-bold mt-0.5">--</div></div>
+                </div>
+                <div class="bg-emerald-950/40 border border-emerald-800/60 rounded-xl p-3 text-xs space-y-2 font-mono">
+                    <div id="recommended-action" class="font-bold text-slate-100 text-xs">Analyzing live live-tick streams for A+ entry triggers...</div>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <button onclick="executeActionSignal('RISE')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition">EXECUTE UP/RISE</button>
+                        <button onclick="executeActionSignal('FALL')" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg text-xs transition">EXECUTE DOWN/FALL</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All-Digit Frequency & Probability Matrix -->
+            <div class="bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-2xl space-y-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">All-Digit Matrix (0-9)</h2>
+                    <span id="last-digit-display" class="text-xs font-mono font-bold text-gold bg-amber-950/50 px-2.5 py-0.5 rounded border border-amber-800">Last Digit: --</span>
+                </div>
+                <div class="grid grid-cols-5 gap-1.5 text-center font-mono">
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">0</div><div id="freq-0" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">1</div><div id="freq-1" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">2</div><div id="freq-2" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">3</div><div id="freq-3" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">4</div><div id="freq-4" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">5</div><div id="freq-5" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">6</div><div id="freq-6" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">7</div><div id="freq-7" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">8</div><div id="freq-8" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                    <div class="bg-slate-900 p-1.5 rounded-lg border border-slate-800"><div class="text-[8px] text-slate-500">9</div><div id="freq-9" class="text-[11px] font-bold text-slate-200">0%</div></div>
+                </div>
+                <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800 text-[11px] font-mono space-y-1">
+                    <div class="flex justify-between"><span class="text-slate-400">Best Differ / Match Target:</span><span id="digit-differ-recommendation" class="text-emerald-400 font-bold">Scanning...</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: KILLZONES & LIVE PRO SCANNER FEED -->
+        <div class="space-y-6">
+            <div class="bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Killzone & Currency Bias</h2>
+                    <span id="killzone-timer" class="text-[10px] font-mono text-fxgreen bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800">00:00:00 EAT</span>
+                </div>
+                <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-xs space-y-2.5 font-mono">
+                    <div class="flex justify-between"><span class="text-slate-400">Active Window:</span><span id="active-session-name" class="font-bold text-fxgreen">Calculating...</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">Primary Bias:</span><span id="active-currency-bias" class="font-bold text-amber-400">Neutral</span></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-950/80 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 shadow-2xl space-y-3">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Live Pro Scanner Execution Feed</h2>
+                <div id="pro-scanner-feed" class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-[11px] font-mono space-y-2 text-slate-300 max-h-56 overflow-y-auto">
+                    <div class="text-slate-500">[System] Initializing 4 indicators and live tick streams...</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-950/90 backdrop-blur-md border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-400 font-mono">
+        Ehaldart Global FX & Binary Multimarket Terminal &copy; 2026 | All Rights Reserved
+    </footer>
+
+    <script src="derivApi.js"></script>
+    <script src="aiBotsEngine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
